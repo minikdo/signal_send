@@ -97,7 +97,7 @@ def main():
 
             timestamp, result = send_message(message, recipient)
             if result[0][1] == 'SUCCESS':
-                print(f"\033[F\33[{n}C\033[0;34;0m {timestamp}\033[0;0m")
+                print(f"\033[F\33[{n}C\033[0;34;8m  {timestamp}\033[0;0m")
             else:
                 print(f"{timestamp} {result}")
                 
