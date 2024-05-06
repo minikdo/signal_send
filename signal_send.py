@@ -87,14 +87,21 @@ def main():
     message = args.message
 
     if message is None:
-        print("Run interactive mode.")
+        print(f"Run interactive mode for {args.recipient} {recipient}")
         while True:
             message = input("> ")
             n = len(message) + 3
+
+            # Quit interactive mode
             if message == 'q':
                 print("quit.")
                 sys.exit(0)
 
+            # Protect sending to someone else
+            if message.startswith("s "):
+                print("s ??? quitting...")
+                sys.exit(0)
+                
             timestamp, result = send_message(message, recipient)
             if result[0][1] == 'SUCCESS':
                 print(f"\033[F\33[{n}C\033[0;34;8m  {timestamp}\033[0;0m")
