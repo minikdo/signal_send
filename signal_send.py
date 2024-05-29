@@ -12,7 +12,7 @@ import signal
 
 from .settings import URL
 from .emoicons import emoicons
-from .recipients import recipients
+#from .recipients import recipients
 
 
 TIMEOUT = 120
@@ -128,12 +128,11 @@ def main():
 
     recipient = recipient[0]
     recipient_number = recipient.get("number")
+    recipient_givenname = recipient["profile"]["givenName"]
+    recipient_familyname = recipient["profile"]["familyName"]
 
     if 'profile' in recipient:
-        recipient_name = "{} {}".format(
-            recipient["profile"]["givenName"],
-            recipient["profile"]["familyName"]
-        )
+        recipient_name = f"{recipient_givenname} {recipient_familyname or ''}"
 
     message = args.message
 
@@ -144,13 +143,13 @@ def main():
             signal.signal(signal.SIGALRM, alarm_handler)
             signal.alarm(TIMEOUT)            
             try:
-                message = input("> ")
+                message = input(f"({recipient_givenname})> ")
                 signal.alarm(0)
             except AlarmException:
                 print(f'\nInput timeout {TIMEOUT} sec. Quitting...')
                 sys.exit(0)
 
-            n = len(message) + 3
+            n = len(recipient_givenname) + 2 + len(message) + 3
 
             # Quit interactive mode
             if message == 'q':
