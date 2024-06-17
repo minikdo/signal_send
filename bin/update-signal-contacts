@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# TODO: rewrite to python
+
+set -ux
+
+CONTACTS=$HOME/.local/share/signal-send/contacts.json
+URL=srv-waw:33417/api/v1/rpc
+
+result=$(http POST ${URL} jsonrpc="2.0" method="listContacts" id="1")
+
+if [ -n "$result" ]; then
+    cp -a $CONTACTS ${CONTACTS}.bak
+    echo $result | jq .result | tee $CONTACTS
+fi
