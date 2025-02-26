@@ -2,13 +2,13 @@
 
 import os
 import sys
-from re import findall as re_findall
-import requests
 import json
-import uuid
-import argparse
 from datetime import datetime as dt
+import uuid
+from re import findall as re_findall
+import argparse
 import signal
+import requests
 
 from .settings import URL
 from .emoicons import emoicons
@@ -16,6 +16,7 @@ from .emoicons import emoicons
 
 TIMEOUT = 120
 MSG_CHAR_LIMIT = 5000
+
 
 class AlarmException(Exception):
     pass
@@ -26,23 +27,28 @@ def alarm_handler(signum, frame):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("recipient", nargs="?")
+parser.add_argument("recipient", nargs=1)
 parser.add_argument("message", nargs="?")
 parser.add_argument("-l", "--list", action="store_true", help="list contacts")
-parser.add_argument("-r", "--remove", action="store_true", help="remove contact")
+parser.add_argument("-r", "--remove", action="store_true",
+                    help="remove contact")
 parser.add_argument("-e", "--emoicons", action="store_true",
                     help="list emoicons")
 
 args = parser.parse_args()
 
 
-with open(f"{os.path.expanduser('~')}/.local/share/signal-send/contacts.json", "r") as f:
+with open(
+        f"{os.path.expanduser('~')}/.local/share/signal-send/contacts.json",
+        "r") as f:
     contacts = iter(json.load(f))
+
 
 def istartswith(name, pattern):
     if name is None:
         return None
     return name.lower().startswith(pattern)
+
 
 def find_contact(pattern):
 
@@ -53,6 +59,7 @@ def find_contact(pattern):
              if istartswith(i["profile"]["givenName"], pattern)), False):
         results.append(result)
     return results
+
 
 def replace_emoicons(message):
 
@@ -99,6 +106,7 @@ def send_message(message, recipient):
 
     return timestamp, result, timestamp_orig
 
+
 def remote_delete(recipient, timestamp):
 
     payload = {
@@ -115,6 +123,7 @@ def remote_delete(recipient, timestamp):
     response = response.json()
 
     return response
+
 
 def remove_contact(recipient):
 
@@ -136,7 +145,6 @@ def remove_contact(recipient):
 def main():
 
     if args.list:
-        from operator import itemgetter
         from tabulate import tabulate
         res = []
         for contact in contacts:
@@ -153,7 +161,6 @@ def main():
                        showindex=True))
         sys.exit(0)
 
-
     if args.remove:
         result = remove_contact(args.recipient)
         print(result)
@@ -164,7 +171,7 @@ def main():
         print(emoicons)
         sys.exit(0)
 
-    recipient = find_contact(args.recipient)
+    recipient = find_contact(args.recipient[0])
 
     if len(recipient) == 0:
         print('no recipient found.')
@@ -195,12 +202,14 @@ def main():
             sys.exit(1)
 
     if message is None:
-        print(f"Run interactive mode for {recipient_name}{recipient_number or recipient_uuid}")
+        print("Run interactive mode for "
+              f"{recipient_name}{recipient_number or recipient_uuid}")
 
         timestamp_orig = 0
         while True:
             signal.signal(signal.SIGALRM, alarm_handler)
-            signal.alarm(TIMEOUT)            
+            signal.alarm(TIMEOUT)
+
             try:
                 message = input(f"({recipient_givenname})> ")
                 signal.alarm(0)
@@ -224,13 +233,15 @@ def main():
             if message.startswith("s "):
                 print("s ??? quitting...")
                 sys.exit(1)
-                
-            timestamp, result, timestamp_orig = send_message(message, recipient_uuid)
+
+            timestamp, result, timestamp_orig = send_message(message,
+                                                             recipient_uuid)
             if result[0][1] == 'SUCCESS':
-                print(f"\033[F\33[{n}C\033[0;34;8m  {timestamp} \033[38;5;239m{timestamp_orig}\033[0;0m")
+                print(f"\033[F\33[{n}C\033[0;34;8m  "
+                      f"{timestamp} \033[38;5;239m{timestamp_orig}\033[0;0m")
             else:
                 print(f"{timestamp} {result}")
-                
+
     timestamp, result, _ = send_message(message, recipient_number)
     print(f"{timestamp} {result}")
 
